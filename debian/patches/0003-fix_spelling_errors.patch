@@ -1,0 +1,13 @@
+Fix a small spelling error
+
+--- a/postgrey
++++ b/postgrey
+@@ -980,7 +980,7 @@
+ 
+ =item *
+ 
+-At least 5 successfull attempts of delivering a mail (after greylisting was
++At least 5 successful attempts of delivering a mail (after greylisting was
+ done). That number can be changed by specifying a number after the
+ --auto-whitelist-clients argument. Only one attempt per hour counts.
+ 
