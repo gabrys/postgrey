@@ -21,7 +21,7 @@ case "$1" in
             dpkg-statoverride --remove /var/lib/postgrey || true
         fi
 
-        if [ -x /usr/bin/ucf ]; then
+        if which ucf >/dev/null; then
             ucf --purge /etc/postgrey/whitelist_clients
             ucf --purge /etc/postgrey/whitelist_recipients
             ucf --purge /etc/default/postgrey
