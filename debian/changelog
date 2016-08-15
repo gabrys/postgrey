@@ -1,8 +1,10 @@
 postgrey (1.36-1) unstable; urgency=medium
 
   * New upstream release
-  * debian/patches:
-    + all patches refreshed
+  * debian/patches: all patches refreshed
+  * debian/control:
+    + VCS info changed to use canonical URLs
+    + Standards-Version updated to 3.9.8, no changes required
 
  -- Antonio Radici <antonio@debian.org>  Mon, 15 Aug 2016 21:29:12 +0100
 
