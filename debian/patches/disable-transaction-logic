@@ -1,10 +1,19 @@
+From: Antonio Radici <antonio@debian.org>
+Date: Mon, 15 Aug 2016 21:28:23 +0100
+Subject: disable-transaction-logic
+
 patch to disable the transactional logic during the cleaning of the DB, this
 fixes a problem seen as result of updates of BerkeleyDB.
 See http://bugs.debian.org/614968 for more info
+---
+ postgrey | 8 --------
+ 1 file changed, 8 deletions(-)
 
+diff --git a/postgrey b/postgrey
+index 4923c67..b24823a 100755
 --- a/postgrey
 +++ b/postgrey
-@@ -276,11 +276,7 @@
+@@ -291,11 +291,7 @@ sub do_maintenance($$)
                  $nr_keys_after++;
              }
          }
@@ -16,7 +25,7 @@ See http://bugs.debian.org/614968 for more info
          
          $self->mylog(1, "cleaning main database finished. before: $nr_keys_before, after: $nr_keys_after");
  
-@@ -300,11 +296,7 @@
+@@ -315,11 +311,7 @@ sub do_maintenance($$)
                      $nr_keys_after++;
                  }
              }
