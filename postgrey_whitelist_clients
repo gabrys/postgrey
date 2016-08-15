@@ -3,7 +3,7 @@
 # put this file in /etc/postfix or specify its path
 # with --whitelist-clients=xxx
 #
-# postgrey version: 1.35, build date: 2014-06-11
+# postgrey version: 1.36, build date: 2015-09-01
 
 # greylisting.org: Southwest Airlines (unique sender, no retry)
 southwest.com
@@ -144,14 +144,14 @@ flymonarch.com
 # ibm.com (big pool, reported by Casey Peel)
 ibm.com
 # messagelabs.com (big pool, reported by John Tobin)
-/^mail\d+\.messagelabs\.com$/
+messagelabs.com
 # ptb.de (slow, reported by Joachim Schoenberg)
 berlin.ptb.de
 # registrarmail.net (unique sender names, reported by Simon Waters)
 registrarmail.net
 # google.com (big pool, reported by Matthias Dyer, Martin Toft)
 google.com
-# orange.fr (big pool, reported by Loïc Le Loarer)
+# orange.fr (big pool, reported by LoÃ¯c Le Loarer)
 /^smtp\d+\.orange\.fr$/
 # citigroup.com (slow retry, reported by Michael Monnerie)
 /^smtp\d+.citigroup.com$/
@@ -227,3 +227,13 @@ mout-xforward.kundenserver.de
 mout-xforward.perfora.net
 # 2014-02-01: startcom.org (long retry, reported by jweiher)
 gateway.startcom.org
+# 2014-12-18: mail.ru (retries from fallback*.mail.ru, reported by Andriy Yurchuk)
+/^fallback\d+\.mail\.ru$/
+# French tax authority, no retry
+dgfip.finances.gouv.fr 
+# 2015-06-10: magisto.com (requested by postmaster)
+/^o\d+\.ntdc\.magisto\.com$/
+# 2015-07-23: outlook.com (github #20)
+outlook.com
+# 2015-08-19 (the retrying is failing)
+mail.alibaba.com
