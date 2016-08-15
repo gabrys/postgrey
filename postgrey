@@ -11,6 +11,7 @@ package postgrey;
 use strict;
 use Pod::Usage;
 use Getopt::Long 2.25 qw(:config posix_default no_ignore_case);
+use NetAddr::IP;
 use Net::Server; # used only to find out which version we use
 use Net::Server::Multiplex;
 use BerkeleyDB;
@@ -22,7 +23,7 @@ use POSIX qw(strftime setlocale LC_ALL);
 use vars qw(@ISA);
 @ISA = qw(Net::Server::Multiplex);
 
-my $VERSION = '1.35';
+my $VERSION = '1.36';
 my $DEFAULT_DBDIR = '/var/spool/postfix/postgrey';
 my $CONFIG_DIR = '/etc/postfix';
 
@@ -181,12 +182,26 @@ sub do_client_substitutions($$$)
         return ($ip, undef);
     }
 
-    my @ip=split(/\./, $ip);
-    return ($ip, undef) unless defined $ip[3];
-    # skip if it contains the last two IP numbers in the hostname
-    # (we assume it is a pool of dialup addresses of a provider)
-    return ($ip, undef) if $revdns =~ /$ip[2]/ and $revdns =~ /$ip[3]/;
-    return (join('.', @ip[0..2], '0'), $ip[3]);
+    my $ipaddr;
+    if($ip =~ /\./) {
+        # IPv4
+        my @ip=split(/\./, $ip);
+        return ($ip, undef) unless defined $ip[3];
+        # skip if it contains the last two IP numbers in the hostname
+        # (we assume it is a pool of dialup addresses of a provider)
+        return ($ip, undef) if $revdns =~ /$ip[2]/ and $revdns =~ /$ip[3]/;
+
+        $ipaddr = NetAddr::IP->new($ip, $self->{postgrey}{ipv4cidr});
+    }
+    elsif($ip =~ /:/) {
+        # IPv6
+        $ipaddr = NetAddr::IP->new($ip, $self->{postgrey}{ipv6cidr});
+    }
+    else {
+        warn "doesn't look like an IP address: $ipaddr\n";
+        return ($ip, undef);
+    }
+    return ($ipaddr->network, undef);
 }
 
 sub mylog($$$)
@@ -510,9 +525,10 @@ sub main()
     # parse options
     my %opt = ();
     GetOptions(\%opt, 'help|h', 'man', 'version', 'noaction|no-action|n',
-        'verbose|v', 'quiet|q', 'daemonize|d', 'unix|u=s', 'inet|i=s',
+        'verbose|v', 'quiet|q', 'daemonize|d',
+        'unix|u=s', 'inet|i=s', 'socketmode=s',
         'user=s', 'group=s', 'dbdir=s', 'pidfile=s', 'delay=i', 'max-age=i',
-        'lookup-by-subnet', 'lookup-by-host', 'auto-whitelist-clients:s', 
+        'lookup-by-subnet', 'lookup-by-host', 'ipv4cidr=i', 'ipv6cidr=i', 'auto-whitelist-clients:s', 
         'whitelist-clients=s@', 'whitelist-recipients=s@',
         'syslogfacility|syslog-facility|facility=s',
         'retry-window=s', 'greylist-action=s', 'greylist-text=s', 'privacy',
@@ -567,6 +583,11 @@ sub main()
     if($opt{inet}) {
         $opt{inet} =~ /^(.*)$/; $opt{inet} = $1;
     }
+    # untaint what is given on --socketmode. It is not security sensitive since
+    # it is provided by the admin
+    if($opt{socketmode}) {
+        $opt{socketmode} =~ /^(.*)$/; $opt{socketmode} = $1;
+    }
 
     # determine proper "logsock" for Sys::Syslog
     my $syslog_logsock;
@@ -595,6 +616,7 @@ sub main()
             commandline      => [ 'postgrey', @ARGV_saved ],
             port             => [ $opt{inet} ? $opt{inet} : $opt{unix}."|unix" ],
             proto            => $opt{inet} ? 'tcp' : 'unix',
+            socketmode       => $opt{socketmode} || '0666',
             user             => $opt{user} || 'postgrey',
             group            => $opt{group} || 'nogroup',
             dbdir            => $opt{dbdir} || $DEFAULT_DBDIR,
@@ -613,6 +635,8 @@ sub main()
             last_maint       => time,
             last_maint_keys  => 0, # do it on the first night
             lookup_by_host   => $opt{'lookup-by-host'},
+            ipv4cidr         => $opt{'ipv4cidr'} || 24,
+            ipv6cidr         => $opt{'ipv6cidr'} || 64,            
             awl_clients      => defined $opt{'auto-whitelist-clients'} ?
                 ($opt{'auto-whitelist-clients'} ne '' ?
                     $opt{'auto-whitelist-clients'} : 5) : 5,
@@ -665,9 +689,9 @@ sub post_bind_hook()
 {
     my ($self) = @_;
 
-    # unix socket permissions should be 666
+    # set unix socket permissions
     if($self->{server}{port}[0] =~ /^(.*)\|unix$/) {
-        chmod 0666, $1;
+        chmod oct($self->{server}{socketmode}), $1;
     }
 }
 
@@ -801,6 +825,7 @@ B<postgrey> [I<options>...]
      --syslog-facility   Syslog facility to use (default mail)
  -q, --quiet             decrease verbosity level
  -u, --unix=PATH         listen on unix socket PATH
+     --socketmode=MODE   unix socket permission (default 0666)
  -i, --inet=[HOST:]PORT  listen on PORT, localhost if HOST is not specified
  -d, --daemonize         run in the background
      --pidfile=PATH      put daemon pid into this file
@@ -815,7 +840,9 @@ B<postgrey> [I<options>...]
      --greylist-action=A if greylisted, return A to Postfix (default: DEFER_IF_PERMIT)
      --greylist-text=TXT response when a mail is greylisted
                          (default: Greylisted + help url, see below)
-     --lookup-by-subnet  strip the last 8 bits from IP addresses (default)
+     --lookup-by-subnet  strip the last N bits from IP addresses, determined by ipv4cidr and ipv6cidr (default)
+     --ipv4cidr=N        What cidr to use for the subnet on IPv4 addresses when using lookup-by-subnet (default: 24)
+     --ipv6cidr=N        What cidr to use for the subnet on IPv6 addresses when using lookup-by-subnet (default: 64)
      --lookup-by-host    do not strip the last 8 bits from IP addresses
      --privacy           store data using one-way hash functions
      --hostname=NAME     set the hostname (default: `hostname`)
