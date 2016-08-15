@@ -1,2 +1,2 @@
-imported-upstream-diff
-disable-transaction-logic
+0001-imported_upstream_diff.patch
+0002-disable_transaction_logic.patch
