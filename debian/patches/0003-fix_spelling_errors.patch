@@ -1,4 +1,11 @@
+From: Antonio Radici <antonio@debian.org>
+Date: Sun, 28 Aug 2016 19:15:06 +0100
+Subject: fix_spelling_errors
+
 Fix a small spelling error
+---
+ postgrey | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 --- a/postgrey
 +++ b/postgrey

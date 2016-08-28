@@ -9,11 +9,9 @@ See http://bugs.debian.org/614968 for more info
  postgrey | 8 --------
  1 file changed, 8 deletions(-)
 
-diff --git a/postgrey b/postgrey
-index 4923c67..b24823a 100755
 --- a/postgrey
 +++ b/postgrey
-@@ -291,11 +291,7 @@ sub do_maintenance($$)
+@@ -291,11 +291,7 @@
                  $nr_keys_after++;
              }
          }
@@ -25,7 +23,7 @@ index 4923c67..b24823a 100755
          
          $self->mylog(1, "cleaning main database finished. before: $nr_keys_before, after: $nr_keys_after");
  
-@@ -315,11 +311,7 @@ sub do_maintenance($$)
+@@ -315,11 +311,7 @@
                      $nr_keys_after++;
                  }
              }
