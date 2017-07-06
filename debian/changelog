@@ -1,3 +1,11 @@
+postgrey (1.36-4) unstable; urgency=medium
+
+  * debian/patches:
+    + 867201-ipv6-parse-error.patch: new parsing style for ipv6 which should
+      also address a crash (Closes: 867201).
+
+ -- Antonio Radici <antonio@debian.org>  Thu, 06 Jul 2017 22:10:38 +0100
+
 postgrey (1.36-3) unstable; urgency=medium
 
   * debian/patches:
