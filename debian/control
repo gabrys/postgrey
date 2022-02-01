@@ -7,8 +7,8 @@ Build-Depends: debhelper (>= 7), quilt
 Build-Depends-Indep: po-debconf
 Standards-Version: 3.9.8
 Homepage: http://postgrey.schweikert.ch/
-Vcs-Git: https://anonscm.debian.org/git/collab-maint/postgrey.git
-Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/postgrey.git
+Vcs-Git: https://salsa.debian.org/debian/postgrey.git
+Vcs-Browser: https://salsa.debian.org/debian/postgrey
 
 Package: postgrey
 Architecture: all
