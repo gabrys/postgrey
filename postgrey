@@ -23,31 +23,9 @@ use POSIX qw(strftime setlocale LC_ALL);
 use vars qw(@ISA);
 @ISA = qw(Net::Server::Multiplex);
 
-my $VERSION = '1.36';
+my $VERSION = '1.37';
 my $DEFAULT_DBDIR = '/var/spool/postfix/postgrey';
 my $CONFIG_DIR = '/etc/postfix';
-
-sub cidr_parse($)
-{
-    defined $_[0] or return undef;
-    $_[0] =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)$/ or return undef;
-    $1 < 256 and $2 < 256 and $3 < 256 and $4 < 256 and $5 <= 32 and $5 > 0
-    	or return undef;
-    my $net = ($1<<24)+($2<<16)+($3<<8)+$4;
-    my $mask = ~((1<<(32-$5))-1);
-    return ($net & $mask, $mask);
-}
-
-sub cidr_match($$$)
-{
-    my ($net, $mask, $addr) = @_;
-    return undef unless defined $net and defined $mask and defined $addr;
-    return undef if ($addr =~ /:.*:/); # ignore IPv6 addresses
-    if($addr =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/) {
-        $addr =  ($1<<24)+($2<<16)+($3<<8)+$4;
-    }
-    return ($addr & $mask) == $net;
-}
 
 sub read_clients_whitelists($)
 {
@@ -55,7 +33,6 @@ sub read_clients_whitelists($)
 
     my @whitelist_clients = ();
     my @whitelist_ips = ();
-    my @whitelist_cidr = ();
     for my $f (@{$self->{postgrey}{whitelist_clients_files}}) {
         if(open(CLIENTS, $f)) {
             while(<CLIENTS>) {
@@ -64,22 +41,25 @@ sub read_clients_whitelists($)
                     # regular expression
                     push @whitelist_clients, qr{$1}i;
                 }
-                elsif(/^\d{1,3}(?:\.\d{1,3}){0,3}$/) {
-                    # IP address or part of it
-                    push @whitelist_ips, qr{^\Q$_\E\b};
+                elsif(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?$/) {
+                    # IPv4 address (with or without netmask)
+                    my $ip = NetAddr::IP->new($_);
+                    push @whitelist_ips, $ip if defined $ip;
                 }
-                elsif(/^.*\:.*\:.*$/) {
-                    # IPv6?
-                    push @whitelist_ips, qr{^\Q$_\E\b};
+                elsif(/^\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+                    # Partial IPv4 address (/24)
+                    my $ip = NetAddr::IP->new($_, 24);
+                    push @whitelist_ips, $ip if defined $ip;
                 }
-                elsif(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/) {
-                    my ($net, $mask) = cidr_parse($_);
-                    if(defined $mask) {
-                        push @whitelist_cidr, [ $net, $mask ];
-                    }
-                    else {
-                        warn "$f line $.: invalid cidr address\n";
-                    }
+                elsif(/^\d{1,3}\.\d{1,3}$/) {
+                    # Partial IPv4 address (/16)
+                    my $ip = NetAddr::IP->new($_, 24);
+                    push @whitelist_ips, $ip if defined $ip;
+                }
+                elsif(/^.*\:.*\:.*(?:\/\d{1,3})?$/) {
+                    # IPv6 address (with or without netmask)
+                    my $ip = NetAddr::IP->new($_);
+                    push @whitelist_ips, $ip if defined $ip;
                 }
                 # note: we had ^[^\s\/]+$ but it triggers a bug in perl 5.8.0
                 elsif(/^\S+$/) {
@@ -98,7 +78,6 @@ sub read_clients_whitelists($)
     }
     $self->{postgrey}{whitelist_clients} = \@whitelist_clients;
     $self->{postgrey}{whitelist_ips}     = \@whitelist_ips;
-    $self->{postgrey}{whitelist_cidr}    = \@whitelist_cidr;
 }
 
 sub read_recipients_whitelists($)
@@ -183,25 +162,17 @@ sub do_client_substitutions($$$)
     }
 
     my $ipaddr;
-    if($ip =~ /\./) {
-        # IPv4
-        my @ip=split(/\./, $ip);
-        return ($ip, undef) unless defined $ip[3];
-        # skip if it contains the last two IP numbers in the hostname
-        # (we assume it is a pool of dialup addresses of a provider)
-        return ($ip, undef) if $revdns =~ /$ip[2]/ and $revdns =~ /$ip[3]/;
-
-        $ipaddr = NetAddr::IP->new($ip, $self->{postgrey}{ipv4cidr});
+    if($ip->bits() == 32) {
+        $ipaddr = NetAddr::IP->new($ip->addr, $self->{postgrey}{ipv4cidr});
     }
-    elsif($ip =~ /:/) {
-        # IPv6
-        $ipaddr = NetAddr::IP->new($ip, $self->{postgrey}{ipv6cidr});
+    elsif($ip->bits() == 128) {
+        $ipaddr = NetAddr::IP->new($ip->addr, $self->{postgrey}{ipv6cidr});
     }
     else {
-        warn "doesn't look like an IP address: $ipaddr\n";
+        warn "NetAddr::IP->bits() neither 32 nor 128???\n";
         return ($ip, undef);
     }
-    return ($ipaddr->network, undef);
+    return ($ipaddr->network()->addr(), undef);
 }
 
 sub mylog($$$)
@@ -358,25 +329,39 @@ sub smtpd_access_policy($$)
     # not in a regular postfix query connection
     if(defined $attr->{policy_test_time}) { $now = $attr->{policy_test_time} }
 
-    # whitelists
+    # make sure that important attributes are defined
+    for my $a (qw(client_address client_name recipient sender)) {
+        defined $attr->{$a} or do {
+            warn "attribute missing: $a\n";
+            return 'DUNNO';
+        };
+    }
+
+    # parse "client_address" into a NetAddr::IP object
+    my $ip = NetAddr::IP->new($attr->{client_address});
+    defined $attr->{client_address} or do {
+        warn "can't parse client_address from postfix: $attr->{client_address}\n";
+        return 'DUNNO';
+    };
+    $attr->{client_address_ip} = $ip;
+
+    # whitelists: client name
     for my $w (@{$self->{postgrey}{whitelist_clients}}) {
         if($attr->{client_name} =~ $w) {
             $self->mylog_action($attr, 'pass', 'client whitelist');
             return 'DUNNO';
         }
     }
+
+    # whitelists: client ip
     for my $w (@{$self->{postgrey}{whitelist_ips}}) {
-        if($attr->{client_address} =~ $w) {
+        if($attr->{client_address_ip}->within($w)) {
             $self->mylog_action($attr, 'pass', 'client whitelist');
             return 'DUNNO';
         }
     }
-    for my $w (@{$self->{postgrey}{whitelist_cidr}}) {
-        if(cidr_match($w->[0], $w->[1], $attr->{client_address})) {
-            $self->mylog_action($attr, 'pass', 'client whitelist');
-            return 'DUNNO';
-        }
-    }
+
+    # whitelists: recipient
     for my $w (@{$self->{postgrey}{whitelist_recipients}}) {
         if($attr->{recipient} =~ $w) {
             $self->mylog_action($attr, 'pass', 'recipient whitelist');
@@ -388,7 +373,7 @@ sub smtpd_access_policy($$)
     my ($cawl_db, $cawl_key, $cawl_count, $cawl_last);
     if($self->{postgrey}{awl_clients}) {
         $cawl_db  = $self->{postgrey}{db_cawl};
-        $cawl_key = $attr->{client_address};
+        $cawl_key = $attr->{client_address_ip}->addr();
         if ($self->{postgrey}{privacy}) {
              $cawl_key = Digest::SHA::sha1_hex($cawl_key);
         }
@@ -410,7 +395,7 @@ sub smtpd_access_policy($$)
     # lookup
     my $sender = $self->do_sender_substitutions($attr->{sender});
     my ($client_net, $client_host) =
-        $self->do_client_substitutions($attr->{client_address}, $attr->{client_name});
+        $self->do_client_substitutions($attr->{client_address_ip}, $attr->{client_name});
     my $key    = lc "$client_net/$sender/$attr->{recipient}";
     if ($self->{postgrey}{privacy}) {
         $key = Digest::SHA::sha1_hex($key);
@@ -465,8 +450,8 @@ sub smtpd_access_policy($$)
                 $cawl_count++;
                 $cawl_db->{$cawl_key}=$cawl_count.','.$now;
                 my $client = $attr->{client_name} ?
-                    $attr->{client_name}.'['.$attr->{client_address}.']' :
-                    $attr->{client_address};
+                    $attr->{client_name}.'['.$attr->{client_address_ip}->addr().']' :
+                    $attr->{client_address_ip}->addr();
                 $self->mylog(1, "whitelisted: $client")
                     if $cawl_count==$self->{postgrey}{awl_clients};
             }
@@ -494,10 +479,6 @@ sub smtpd_access_policy($$)
 
     # X-Greylist header:
     if(!$last_was_successful and $self->is_new_instance($attr->{instance})) {
-        # syslog
-        my $client = ($attr->{client_name} and $attr->{client_name} ne 'unknown') ?
-                     $attr->{client_name} : $attr->{client_address};
-
         # add X-Greylist header
         my $date = strftime("%a, %d %b %Y %T %Z", localtime);
         my $delay = $now-$first;
@@ -658,6 +639,12 @@ sub main()
     # max_age is in days
     $server->{postgrey}{max_age}*=3600*24;
 
+    # be sure to put in syslog any warnings / fatal errors
+    if(defined $server->{server}{log_file} and $server->{server}{log_file} eq 'Sys::Syslog') {
+        $SIG{__WARN__} = sub { Sys::Syslog::syslog('warning', '%s', "WARNING: $_[0]") };
+        $SIG{__DIE__}  = sub { Sys::Syslog::syslog('crit', '%s', "FATAL: $_[0]"); die @_; };
+    }
+
     # read whitelist
     $server->read_clients_whitelists();
     $server->read_recipients_whitelists();
@@ -698,12 +685,6 @@ sub post_bind_hook()
 sub pre_loop_hook()
 {
     my ($self) = @_;
-
-    # be sure to put in syslog any warnings / fatal errors
-    if($self->{server}{log_file} eq 'Sys::Syslog') {
-        $SIG{__WARN__} = sub { Sys::Syslog::syslog('warning', '%s', "WARNING: $_[0]") };
-        $SIG{__DIE__}  = sub { Sys::Syslog::syslog('crit', '%s', "FATAL: $_[0]"); die @_; };
-    }
 
     # write files with mode 600
     umask 0077;
