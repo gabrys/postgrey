@@ -1,3 +1,14 @@
+postgrey (1.36-5.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Revert the 1.36-5 change due to a regression, discussed in #880047#.
+    The same patch has also been included in 1.36-3+deb9u1 and reverted
+    in 1.36-3+deb9u2.
+    There is no point in creating a /var/run/postgrey/ to hold the pidfile
+    as using /var/run/postgrey.pid seems to work just fine.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 09 May 2019 13:35:38 +0200
+
 postgrey (1.36-5) unstable; urgency=medium
 
   * debian/postgrey.init: create /var/run/postgrey if it
