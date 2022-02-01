@@ -16,9 +16,11 @@ was written by Adrian von Bidder
  7 files changed, 89 insertions(+), 25 deletions(-)
  create mode 100644 contrib/postgrey_clients_dump
 
---- a/README
-+++ b/README
-@@ -21,7 +21,7 @@
+Index: postgrey/README
+===================================================================
+--- postgrey.orig/README
++++ postgrey/README
+@@ -21,7 +21,7 @@ Documentation
  
  See POD documentation in postgrey. Execute:
  
@@ -27,9 +29,11 @@ was written by Adrian von Bidder
  
  See also Postgrey's homepage:
  
---- a/README.exim
-+++ b/README.exim
-@@ -12,7 +12,7 @@
+Index: postgrey/README.exim
+===================================================================
+--- postgrey.orig/README.exim
++++ postgrey/README.exim
+@@ -12,7 +12,7 @@ able to talk to the Postgrey daemon, whi
  in Exim's config file:
  
   defer log_message = greylisted host $sender_host_address
@@ -38,8 +42,10 @@ was written by Adrian von Bidder
         set acl_m0  = ${sg{${readsocket{/var/run/postgrey}{$acl_m0}{5s}{}{action=DUNNO}}}{action=}{}}
         message     = ${sg{$acl_m0}{^\\w+\\s*}{}}
         condition   = ${if eq{${uc:${substr{0}{5}{$acl_m0}}}}{DEFER}{true}{false}}
+Index: postgrey/contrib/postgrey_clients_dump
+===================================================================
 --- /dev/null
-+++ b/contrib/postgrey_clients_dump
++++ postgrey/contrib/postgrey_clients_dump
 @@ -0,0 +1,54 @@
 +#!/usr/bin/perl -w
 +
@@ -95,9 +101,11 @@ was written by Adrian von Bidder
 +main;
 +
 +# vim: sw=4
---- a/contrib/postgreyreport
-+++ b/contrib/postgreyreport
-@@ -24,7 +24,7 @@
+Index: postgrey/contrib/postgreyreport
+===================================================================
+--- postgrey.orig/contrib/postgreyreport
++++ postgrey/contrib/postgreyreport
+@@ -24,7 +24,7 @@ select((select(STDOUT), $| = 1)[0]); 	#
  # default options, override via command line
  my %opt = ( 	
  	user 			=> 'postgrey',
@@ -106,7 +114,7 @@ was written by Adrian von Bidder
  	delay			=> 300,
  	return_string		=> 'Greylisted',	# match on this string
  
-@@ -594,7 +594,7 @@
+@@ -594,7 +594,7 @@ B<postgreyreport> [I<options>...]
       --version		      display version and exit
  
       --user=USER              run as USER (default: postgrey)
@@ -115,20 +123,22 @@ was written by Adrian von Bidder
       --delay=N                report triplets that did not try again after N seconds (default: 300)
       --greylist-text=TXT      text to match on for greylist maillog lines
  
---- a/postgrey
-+++ b/postgrey
-@@ -24,8 +24,8 @@
+Index: postgrey/postgrey
+===================================================================
+--- postgrey.orig/postgrey
++++ postgrey/postgrey
+@@ -24,8 +24,8 @@ use vars qw(@ISA);
  @ISA = qw(Net::Server::Multiplex);
  
- my $VERSION = '1.36';
+ my $VERSION = '1.37';
 -my $DEFAULT_DBDIR = '/var/spool/postfix/postgrey';
 -my $CONFIG_DIR = '/etc/postfix';
 +my $DEFAULT_DBDIR = '/var/lib/postgrey';
 +my $CONFIG_DIR = '/etc/postgrey';
  
- sub cidr_parse($)
+ sub read_clients_whitelists($)
  {
-@@ -618,7 +618,7 @@
+@@ -599,7 +599,7 @@ sub main()
              proto            => $opt{inet} ? 'tcp' : 'unix',
              socketmode       => $opt{socketmode} || '0666',
              user             => $opt{user} || 'postgrey',
@@ -137,7 +147,7 @@ was written by Adrian von Bidder
              dbdir            => $opt{dbdir} || $DEFAULT_DBDIR,
              setsid           => $opt{daemonize} ? 1 : undef,
              pid_file         => $opt{daemonize} ? $opt{pidfile} : undef,
-@@ -644,10 +644,11 @@
+@@ -625,10 +625,11 @@ sub main()
              greylist_action  => $opt{'greylist-action'} || 'DEFER_IF_PERMIT',
              greylist_text    => $opt{'greylist-text'} || 'Greylisted, see http://postgrey.schweikert.ch/help/%r.html',
              whitelist_clients_files    => $opt{'whitelist-clients'} ||
@@ -152,7 +162,7 @@ was written by Adrian von Bidder
              privacy => defined $opt{'privacy'},
              hostname => defined $opt{hostname} ? $opt{hostname} : hostname,
              exim => defined $opt{'exim'},
-@@ -830,8 +831,8 @@
+@@ -811,8 +812,8 @@ B<postgrey> [I<options>...]
   -d, --daemonize         run in the background
       --pidfile=PATH      put daemon pid into this file
       --user=USER         run as USER (default: postgrey)
@@ -163,7 +173,7 @@ was written by Adrian von Bidder
       --delay=N           greylist for N seconds (default: 300)
       --max-age=N         delete entries older than N days since the last time
                           that they have been seen (default: 35)
-@@ -847,8 +848,8 @@
+@@ -828,8 +829,8 @@ B<postgrey> [I<options>...]
       --privacy           store data using one-way hash functions
       --hostname=NAME     set the hostname (default: `hostname`)
       --exim              don't reuse a socket for more than one query (exim compatible)
@@ -174,7 +184,7 @@ was written by Adrian von Bidder
       --auto-whitelist-clients=N   whitelist host after first successful delivery
                                    N is the minimal count of mails before a client is 
                                    whitelisted (turned on by default with value 5)
-@@ -858,8 +859,9 @@
+@@ -839,8 +840,9 @@ B<postgrey> [I<options>...]
                                    default: X-Greylist: delayed <seconds> seconds by postgrey-<version> at <server>; <date>
  
   Note that the --whitelist-x options can be specified multiple times,
@@ -186,7 +196,7 @@ was written by Adrian von Bidder
  
  =head1 DESCRIPTION
  
-@@ -885,7 +887,7 @@
+@@ -866,7 +868,7 @@ doing lookups in the database.
  =item *
  
  Create a C<postgrey> user and the directory where to put the database I<dbdir>
@@ -195,7 +205,7 @@ was written by Adrian von Bidder
  
  =item *
  
-@@ -908,12 +910,12 @@
+@@ -889,12 +891,12 @@ Put something like this in /etc/main.cf:
  
  =item *
  
@@ -211,7 +221,7 @@ was written by Adrian von Bidder
  greylisting.
  
  =back
-@@ -924,9 +926,10 @@
+@@ -905,9 +907,10 @@ Whitelists allow you to specify client a
  which no greylisting should be done. Per default postgrey will read the
  following files:
  
@@ -225,8 +235,10 @@ was written by Adrian von Bidder
  
  You can specify alternative paths with the --whitelist-x options.
  
---- a/postgrey_whitelist_clients
-+++ b/postgrey_whitelist_clients
+Index: postgrey/postgrey_whitelist_clients
+===================================================================
+--- postgrey.orig/postgrey_whitelist_clients
++++ postgrey/postgrey_whitelist_clients
 @@ -1,10 +1,17 @@
  # postgrey whitelist for mail client hostnames
  # --------------------------------------------
@@ -234,7 +246,7 @@ was written by Adrian von Bidder
 +# put this file in /etc/postgrey or specify its path
  # with --whitelist-clients=xxx
  #
- # postgrey version: 1.36, build date: 2015-09-01
+ # postgrey version: 1.37, build date: 2016-09-22
  
 +# Debian-specific additions
 +# I *know* they run real mail queues, so greylisting only creates
@@ -246,8 +258,10 @@ was written by Adrian von Bidder
  # greylisting.org: Southwest Airlines (unique sender, no retry)
  southwest.com
  # greylisting.org: isp.belgacom.be (wierd retry pattern)
---- a/postgrey_whitelist_recipients
-+++ b/postgrey_whitelist_recipients
+Index: postgrey/postgrey_whitelist_recipients
+===================================================================
+--- postgrey.orig/postgrey_whitelist_recipients
++++ postgrey/postgrey_whitelist_recipients
 @@ -1,6 +1,6 @@
  # postgrey whitelist for mail recipients
  # --------------------------------------

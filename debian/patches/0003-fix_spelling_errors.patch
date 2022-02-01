@@ -7,9 +7,11 @@ Fix a small spelling error
  postgrey | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/postgrey
-+++ b/postgrey
-@@ -980,7 +980,7 @@
+Index: postgrey/postgrey
+===================================================================
+--- postgrey.orig/postgrey
++++ postgrey/postgrey
+@@ -961,7 +961,7 @@ automatically whitelisted if the followi
  
  =item *
  
