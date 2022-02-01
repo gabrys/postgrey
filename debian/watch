@@ -1,2 +1,2 @@
-version=2
-http://postgrey.schweikert.ch/pub/postgrey-(.*)\.tar\.gz
+version=4
+https://postgrey.schweikert.ch/pub/postgrey-([\d\.]+)\.tar\.gz
