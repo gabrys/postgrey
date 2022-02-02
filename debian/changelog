@@ -9,6 +9,7 @@ postgrey (1.37-0.1) UNRELEASED; urgency=medium
   * Drop 867201-ipv6-parse-error, backported from upstream git.
   * Refresh all other patches.
   * Remove obsolete preinst maint script.
+  * Set Rules-Requires-Root to "no".
 
  -- Jordi Mallach <jordi@debian.org>  Tue, 01 Feb 2022 15:24:58 +0100
 
