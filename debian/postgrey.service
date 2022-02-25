@@ -1,0 +1,19 @@
+[Unit]
+Description=Postfix greylisting policy server
+Documentation=man:postgrey(8)
+Before=postfix.service
+Before=exim4.service
+
+[Service]
+Type=simple
+Environment=POSTGREY_TEXT="Greylisted, see https://postgrey.schweikert.ch/help/%r.html"
+EnvironmentFile=-/etc/default/postgrey
+ExecStart=/usr/sbin/postgrey \
+ $POSTGREY_OPTS \
+ --greylist-text="${POSTGREY_TEXT}"
+Restart=always
+RestartSec=1
+TimeoutSec=5
+
+[Install]
+WantedBy=multi-user.target

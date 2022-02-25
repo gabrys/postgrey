@@ -13,6 +13,7 @@ Rules-Requires-Root: no
 
 Package: postgrey
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: adduser, debconf, libberkeleydb-perl, libnetaddr-ip-perl,
  libnet-dns-perl, libnet-server-perl (>= 0.87), perl, ucf (>= 0.28),
  ${misc:Depends}

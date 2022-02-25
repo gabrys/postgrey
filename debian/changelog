@@ -10,6 +10,7 @@ postgrey (1.37-0.1) UNRELEASED; urgency=medium
   * Refresh all other patches.
   * Remove obsolete preinst maint script.
   * Set Rules-Requires-Root to "no".
+  * Add systemd service file (closes: #859574).
 
  -- Jordi Mallach <jordi@debian.org>  Tue, 01 Feb 2022 15:24:58 +0100
 
