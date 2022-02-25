@@ -2,6 +2,9 @@ postgrey (1.37-0.1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
   * New upstream release.
+  * Update watch file to v4, use https and restrict it to match filenames
+    with digits to avoid the `postgrey-latest.tar.gz` symlink.
+  * Add a gbp.conf file.
 
  -- Jordi Mallach <jordi@debian.org>  Tue, 01 Feb 2022 15:24:58 +0100
 
