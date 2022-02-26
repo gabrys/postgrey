@@ -3,7 +3,7 @@ Section: mail
 Priority: optional
 Maintainer: Antonio Radici <antonio@debian.org>
 Uploaders: Jon Daley <jondaley-guest@alioth.debian.org>
-Build-Depends: debhelper (>= 7), quilt
+Build-Depends: debhelper-compat (= 13), quilt
 Build-Depends-Indep: po-debconf
 Standards-Version: 3.9.8
 Homepage: http://postgrey.schweikert.ch/
