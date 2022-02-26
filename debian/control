@@ -14,12 +14,11 @@ Rules-Requires-Root: no
 Package: postgrey
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
-Depends: adduser, ucf (>= 0.28),
+Depends: adduser, ucf,
  libberkeleydb-perl, libnetaddr-ip-perl,
- libnet-dns-perl, libnet-server-perl (>= 0.87),
+ libnet-dns-perl, libnet-server-perl,
  ${perl:Depends},
  ${misc:Depends}
-Breaks: libsys-syslog-perl (<< 0.21)
 Recommends: libnet-rblclient-perl, libparse-syslog-perl, postfix | exim4
 Description: greylisting implementation for Postfix
  This package provides a policy server for Postfix to implement "greylisting".
