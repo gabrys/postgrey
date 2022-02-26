@@ -12,6 +12,7 @@ postgrey (1.37-0.1) UNRELEASED; urgency=medium
   * Set Rules-Requires-Root to "no".
   * Add systemd service file (closes: #859574).
   * Use debhelper compat v13, via debhelper-compat Build-Depends.
+  * Drop explicit Build-Depends on quilt, no longer needed.
 
  -- Jordi Mallach <jordi@debian.org>  Tue, 01 Feb 2022 15:24:58 +0100
 
