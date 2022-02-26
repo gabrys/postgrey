@@ -5,7 +5,7 @@ Maintainer: Antonio Radici <antonio@debian.org>
 Uploaders: Jon Daley <jondaley-guest@alioth.debian.org>
 Build-Depends: debhelper-compat (= 13)
 Build-Depends-Indep: po-debconf
-Standards-Version: 3.9.8
+Standards-Version: 4.6.0
 Homepage: http://postgrey.schweikert.ch/
 Vcs-Git: https://salsa.debian.org/debian/postgrey.git
 Vcs-Browser: https://salsa.debian.org/debian/postgrey
