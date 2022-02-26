@@ -1,22 +1,33 @@
-This Debian package was prepared by Adrian von Bidder <cmot@debian.org> in
-July 2004, then the package was adopted by Antonio Radici <antonio@dyne.org>
-in Sept 2009
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: postgrey
+Upstream-Contact: David Schweikert <david@schweikert.ch>
+Source: https://postgrey.schweikert.ch/
+Comment: This Debian package was prepared by
+ Adrian von Bidder <cmot@debian.org> in July 2004,
+ then the package was adopted by Antonio Radici <antonio@debian.org>
+ in September 2009.
 
-It was downloaded from http://postgrey.schweikert.ch/
+Files: *
+Copyright: 2004-2022 David Schweikert
+           2004-2006 ETH Zürich
+           2007 Open Systems AG, Switzerland
+License: GPL-2+
 
-Upstream Author: David Schweikert <david_AT_schweikert.ch>
-                 postgreyreport by tbaker@bakerfl.org
+Files: contrib/postgreyreport
+Copyright: 2004 tbaker@bakerfl.org
+License: GPL-2+
 
-Copyright: postgrey is copyright © 2004-2006 ETH Zürich
-                                 © 2007 Open Systems AG, Switzerland
-           postgreyreport is copyright © 2004 tbaker@bakerfl.org
+Files: debian/*
+Copyright: 2004-2009 Adrian von Bidder <cmot@debian.org>
+           2009-2017 Antonio Radici <antonio@debian.org>
+           2022 Jordi Mallach <jordi@debian.org>
+License: GPL-2+
 
-License:
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  On Debian systems, the complete text of the GNU General
-  Public License can be found in `/usr/share/common-licenses/GPL-2'.
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License can be found in `/usr/share/common-licenses/GPL-2'.
