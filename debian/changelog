@@ -1,4 +1,4 @@
-postgrey (1.37-1) UNRELEASED; urgency=medium
+postgrey (1.37-1) unstable; urgency=medium
 
   * New upstream release (closes: #851571).
     - adds IPv6 lookup-by-subnet support (closes: #666748, #666751)
@@ -26,7 +26,7 @@ postgrey (1.37-1) UNRELEASED; urgency=medium
   * Salvage package (closes: #1008779), keeping Antonio as an Uploader.
   * Ack previous NMUs; thanks Peter and Holger (closes: #929009)
 
- -- Jordi Mallach <jordi@debian.org>  Tue, 01 Feb 2022 15:24:58 +0100
+ -- Jordi Mallach <jordi@debian.org>  Thu, 21 Apr 2022 21:35:13 +0200
 
 postgrey (1.36-5.2) unstable; urgency=medium
 
