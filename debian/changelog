@@ -2,6 +2,7 @@ postgrey (1.37-0.1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
   * New upstream release (closes: #851571).
+    - adds IPv6 lookup-by-subnet support (closes: #666748, #666751)
   * Update watch file to v4, use https and restrict it to match filenames
     with digits to avoid the `postgrey-latest.tar.gz` symlink.
   * Add a gbp.conf file.
