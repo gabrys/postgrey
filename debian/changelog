@@ -1,6 +1,5 @@
-postgrey (1.37-0.1) UNRELEASED; urgency=medium
+postgrey (1.37-1) UNRELEASED; urgency=medium
 
-  * Non-maintainer upload.
   * New upstream release (closes: #851571).
     - adds IPv6 lookup-by-subnet support (closes: #666748, #666751)
   * Update watch file to v4, use https and restrict it to match filenames
@@ -24,6 +23,7 @@ postgrey (1.37-0.1) UNRELEASED; urgency=medium
   * Add upstream metadata.
   * Add patch to sync whitelist_clients with current upstream git
     (closes: #859575).
+  * Salvage package (closes: #1008779), keeping Antonio as an Uploader.
 
  -- Jordi Mallach <jordi@debian.org>  Tue, 01 Feb 2022 15:24:58 +0100
 

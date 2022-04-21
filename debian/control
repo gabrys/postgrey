@@ -1,8 +1,8 @@
 Source: postgrey
 Section: mail
 Priority: optional
-Maintainer: Antonio Radici <antonio@debian.org>
-Uploaders: Jon Daley <jondaley-guest@alioth.debian.org>
+Maintainer: Jordi Mallach <jordi@debian.org>
+Uploaders: Antonio Radici <antonio@debian.org>
 Build-Depends: debhelper-compat (= 13)
 Build-Depends-Indep: po-debconf
 Standards-Version: 4.6.0
