@@ -1,0 +1,3 @@
+usr/share/postgrey/postgrey-default     /etc/default/postgrey
+usr/share/postgrey/whitelist_clients    /etc/postgrey/whitelist_clients
+usr/share/postgrey/whitelist_recipients /etc/postgrey/whitelist_recipients
