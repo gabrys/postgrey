@@ -6,7 +6,7 @@ Before=exim4.service
 
 [Service]
 Type=simple
-Environment=POSTGREY_TEXT="Greylisted, see https://postgrey.schweikert.ch/help/%r.html"
+Environment=POSTGREY_TEXT="Greylisted, see https://postgrey.schweikert.ch/help/%H.html"
 EnvironmentFile=-/etc/default/postgrey
 ExecStart=/usr/sbin/postgrey \
  $POSTGREY_OPTS \

@@ -1,3 +1,10 @@
+postgrey (1.37-2) UNRELEASED; urgency=medium
+
+  * Use %H in the service file to set the hostname in the rejection message
+    (closes: #1031401).
+
+ -- Jordi Mallach <jordi@debian.org>  Wed, 08 Mar 2023 17:27:51 +0100
+
 postgrey (1.37-1) unstable; urgency=medium
 
   * New upstream release (closes: #851571).
