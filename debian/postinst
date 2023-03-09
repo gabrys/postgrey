@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    configure)
+        DBDIR='/var/lib/postgrey'
+
+        getent passwd postgrey > /dev/null || \
+            adduser --system --home "$DBDIR" --no-create-home \
+                    --disabled-password --group postgrey
+    ;;
+esac
+
+#DEBHELPER#
