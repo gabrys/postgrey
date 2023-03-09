@@ -1,1 +1,2 @@
 /etc/postgrey
+/var/lib/postgrey

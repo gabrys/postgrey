@@ -9,6 +9,8 @@ case "$1" in
         getent passwd postgrey > /dev/null || \
             adduser --system --home "$DBDIR" --no-create-home \
                     --disabled-password --group postgrey
+
+	chown postgrey:postgrey $DBDIR
     ;;
 esac
 
