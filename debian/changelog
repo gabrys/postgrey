@@ -1,4 +1,4 @@
-postgrey (1.37-2) UNRELEASED; urgency=medium
+postgrey (1.37-2) unstable; urgency=medium
 
   * Use %H in the service file to set the hostname in the rejection message
     (closes: #1031401).
@@ -7,7 +7,7 @@ postgrey (1.37-2) UNRELEASED; urgency=medium
   * Reinstate creation of postgrey user.
   * Ensure /var/lib/postgrey exists and is owned by postgrey.
 
- -- Jordi Mallach <jordi@debian.org>  Wed, 08 Mar 2023 17:27:51 +0100
+ -- Jordi Mallach <jordi@debian.org>  Mon, 01 May 2023 00:57:30 +0200
 
 postgrey (1.37-1) unstable; urgency=medium
 
