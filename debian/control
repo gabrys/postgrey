@@ -5,11 +5,10 @@ Maintainer: Jordi Mallach <jordi@debian.org>
 Uploaders: Antonio Radici <antonio@debian.org>
 Build-Depends: debhelper-compat (= 13)
 Build-Depends-Indep: po-debconf
-Standards-Version: 4.6.0
+Standards-Version: 4.7.2
 Homepage: http://postgrey.schweikert.ch/
 Vcs-Git: https://salsa.debian.org/debian/postgrey.git
 Vcs-Browser: https://salsa.debian.org/debian/postgrey
-Rules-Requires-Root: no
 
 Package: postgrey
 Architecture: all

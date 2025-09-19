@@ -1,3 +1,12 @@
+postgrey (1.37-2.2) unstable; urgency=medium
+
+  * Non-maintainer upload
+  * Drop commented-out old d/rules that shows up in QA efforts
+  * Update Standards-Version to 4.7.2
+  * Drop 'Rules-Requires-Root: no': it is the default now
+
+ -- Alexandre Detiste <tchet@debian.org>  Fri, 19 Sep 2025 17:55:48 +0200
+
 postgrey (1.37-2.1) unstable; urgency=medium
 
   * Non-maintainer upload.
