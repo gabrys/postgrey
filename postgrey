@@ -24,8 +24,8 @@ use vars qw(@ISA);
 @ISA = qw(Net::Server::Multiplex);
 
 my $VERSION = '1.37';
-my $DEFAULT_DBDIR = '/var/spool/postfix/postgrey';
-my $CONFIG_DIR = '/etc/postfix';
+my $DEFAULT_DBDIR = '/var/lib/postgrey';
+my $CONFIG_DIR = '/etc/postgrey';
 
 sub read_clients_whitelists($)
 {
@@ -262,11 +262,7 @@ sub do_maintenance($$)
                 $nr_keys_after++;
             }
         }
-        my $db_obj = $self->{postgrey}{db_obj};
-        my $txn = $db_env->txn_begin();
-        $db_obj->Txn($txn);
         for my $key (@old_keys) { delete $db->{$key}; }
-        $txn->txn_commit();
         
         $self->mylog(1, "cleaning main database finished. before: $nr_keys_before, after: $nr_keys_after");
 
@@ -286,11 +282,7 @@ sub do_maintenance($$)
                     $nr_keys_after++;
                 }
             }
-            my $db_cawl_obj = $self->{postgrey}{db_cawl_obj};
-            $txn = $db_env->txn_begin();
-            $db_cawl_obj->Txn($txn);
             for my $key (@old_keys_cawl) { delete $cawl_db->{$key}; }
-            $txn->txn_commit();
 
             $self->mylog(1, "cleaning clients database finished. before: $nr_keys_before, after: $nr_keys_after");
         }
@@ -599,7 +591,7 @@ sub main()
             proto            => $opt{inet} ? 'tcp' : 'unix',
             socketmode       => $opt{socketmode} || '0666',
             user             => $opt{user} || 'postgrey',
-            group            => $opt{group} || 'nogroup',
+            group            => $opt{group} || 'postgrey',
             dbdir            => $opt{dbdir} || $DEFAULT_DBDIR,
             setsid           => $opt{daemonize} ? 1 : undef,
             pid_file         => $opt{daemonize} ? $opt{pidfile} : undef,
@@ -625,10 +617,11 @@ sub main()
             greylist_action  => $opt{'greylist-action'} || 'DEFER_IF_PERMIT',
             greylist_text    => $opt{'greylist-text'} || 'Greylisted, see http://postgrey.schweikert.ch/help/%r.html',
             whitelist_clients_files    => $opt{'whitelist-clients'} ||
-                [ "$CONFIG_DIR/postgrey_whitelist_clients" ,
-                  "$CONFIG_DIR/postgrey_whitelist_clients.local" ],
+                [ "$CONFIG_DIR/whitelist_clients" ,
+                  "$CONFIG_DIR/whitelist_clients.local" ],
             whitelist_recipients_files => $opt{'whitelist-recipients'} ||
-                [ "$CONFIG_DIR/postgrey_whitelist_recipients" ],
+                [ "$CONFIG_DIR/whitelist_recipients" ,
+                  "$CONFIG_DIR/whitelist_recipients.local" ],
             privacy => defined $opt{'privacy'},
             hostname => defined $opt{hostname} ? $opt{hostname} : hostname,
             exim => defined $opt{'exim'},
@@ -811,8 +804,8 @@ B<postgrey> [I<options>...]
  -d, --daemonize         run in the background
      --pidfile=PATH      put daemon pid into this file
      --user=USER         run as USER (default: postgrey)
-     --group=GROUP       run as group GROUP (default: nogroup)
-     --dbdir=PATH        put db files in PATH (default: /var/spool/postfix/postgrey)
+     --group=GROUP       run as group GROUP (default: postgrey)
+     --dbdir=PATH        put db files in PATH (default: /var/lib/postgrey)
      --delay=N           greylist for N seconds (default: 300)
      --max-age=N         delete entries older than N days since the last time
                          that they have been seen (default: 35)
@@ -828,8 +821,8 @@ B<postgrey> [I<options>...]
      --privacy           store data using one-way hash functions
      --hostname=NAME     set the hostname (default: `hostname`)
      --exim              don't reuse a socket for more than one query (exim compatible)
-     --whitelist-clients=FILE     default: /etc/postfix/postgrey_whitelist_clients
-     --whitelist-recipients=FILE  default: /etc/postfix/postgrey_whitelist_recipients
+     --whitelist-clients=FILE     default: /etc/postgrey/whitelist_clients
+     --whitelist-recipients=FILE  default: /etc/postgrey/whitelist_recipients
      --auto-whitelist-clients=N   whitelist host after first successful delivery
                                   N is the minimal count of mails before a client is 
                                   whitelisted (turned on by default with value 5)
@@ -839,8 +832,9 @@ B<postgrey> [I<options>...]
                                   default: X-Greylist: delayed <seconds> seconds by postgrey-<version> at <server>; <date>
 
  Note that the --whitelist-x options can be specified multiple times,
- and that per default /etc/postfix/postgrey_whitelist_clients.local is
- also read, so that you can put there local entries.
+ and that per default /etc/postgrey/whitelist_clients.local and
+ /etc/postgrey/whitelist_recipients.local are also read, so that you can put
+ there local entries.
 
 =head1 DESCRIPTION
 
@@ -866,7 +860,7 @@ doing lookups in the database.
 =item *
 
 Create a C<postgrey> user and the directory where to put the database I<dbdir>
-(default: C</var/spool/postfix/postgrey>)
+(default: C</var/lib/postgrey>)
 
 =item *
 
@@ -889,12 +883,12 @@ Put something like this in /etc/main.cf:
 
 =item *
 
-Install the provided postgrey_whitelist_clients and
-postgrey_whitelist_recipients in /etc/postfix.
+Install the provided whitelist_clients and whitelist_recipients in
+/etc/postgrey.
 
 =item *
 
-Put in /etc/postfix/postgrey_whitelist_recipients users that do not want
+Put in /etc/postgrey/whitelist_recipients users that do not want
 greylisting.
 
 =back
@@ -905,9 +899,10 @@ Whitelists allow you to specify client addresses or recipient address, for
 which no greylisting should be done. Per default postgrey will read the
 following files:
 
- /etc/postfix/postgrey_whitelist_clients
- /etc/postfix/postgrey_whitelist_clients.local
- /etc/postfix/postgrey_whitelist_recipients
+ /etc/postgrey/whitelist_clients
+ /etc/postgrey/whitelist_clients.local
+ /etc/postgrey/whitelist_recipients
+ /etc/postgrey/whitelist_recipients.local
 
 You can specify alternative paths with the --whitelist-x options.
 
@@ -966,7 +961,7 @@ automatically whitelisted if the following conditions are met:
 
 =item *
 
-At least 5 successfull attempts of delivering a mail (after greylisting was
+At least 5 successful attempts of delivering a mail (after greylisting was
 done). That number can be changed by specifying a number after the
 --auto-whitelist-clients argument. Only one attempt per hour counts.
 
